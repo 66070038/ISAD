@@ -1,46 +1,112 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, colorchooser
 from tkcalendar import Calendar
+from datetime import datetime, timedelta
+
+class Task:
+    def __init__(self, name, details, start_date, end_date, start_time, end_time, color, from_teacher=False):
+        self.name = name
+        self.details = details
+        self.start_date = start_date
+        self.end_date = end_date
+        self.start_time = start_time
+        self.end_time = end_time
+        self.color = color
+        self.from_teacher = from_teacher
 
 class CalendarApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Calendar with Task Management")
+        self.root.title("Task Management")
 
-        self.calendar = Calendar(root, selectmode='day')
+        self.calendar = Calendar(root, selectmode='day', command=self.show_tasks)
         self.calendar.pack(pady=20)
+
+        # Initialize a dictionary to track events on the calendar
+        self.event_ids = {}
 
         self.task_frame = tk.Frame(root)
         self.task_frame.pack(pady=10)
 
-        self.task_label = tk.Label(self.task_frame, text="Task:")
+        self.task_label = tk.Label(self.task_frame, text="Task Name:")
         self.task_label.grid(row=0, column=0)
 
         self.task_entry = tk.Entry(self.task_frame, width=30)
         self.task_entry.grid(row=0, column=1)
 
+        self.details_label = tk.Label(self.task_frame, text="Details:")
+        self.details_label.grid(row=1, column=0)
+
+        self.details_entry = tk.Entry(self.task_frame, width=30)
+        self.details_entry.grid(row=1, column=1)
+
+        self.start_date_label = tk.Label(self.task_frame, text="Start Date:")
+        self.start_date_label.grid(row=2, column=0)
+
+        self.start_date_entry = tk.Entry(self.task_frame, width=30)
+        self.start_date_entry.grid(row=2, column=1)
+
+        self.end_date_label = tk.Label(self.task_frame, text="End Date:")
+        self.end_date_label.grid(row=3, column=0)
+
+        self.end_date_entry = tk.Entry(self.task_frame, width=30)
+        self.end_date_entry.grid(row=3, column=1)
+
+        self.start_time_label = tk.Label(self.task_frame, text="Start Time:")
+        self.start_time_label.grid(row=4, column=0)
+
+        self.start_time_entry = tk.Entry(self.task_frame, width=30)
+        self.start_time_entry.grid(row=4, column=1)
+
+        self.end_time_label = tk.Label(self.task_frame, text="End Time:")
+        self.end_time_label.grid(row=5, column=0)
+
+        self.end_time_entry = tk.Entry(self.task_frame, width=30)
+        self.end_time_entry.grid(row=5, column=1)
+
+        self.color_button = tk.Button(self.task_frame, text="Choose Color", command=self.choose_color)
+        self.color_button.grid(row=6, column=1)
+
         self.add_task_button = tk.Button(self.task_frame, text="Add Task", command=self.add_task)
-        self.add_task_button.grid(row=0, column=2)
+        self.add_task_button.grid(row=7, column=0)
+
+        self.update_button = tk.Button(self.task_frame, text="Update Task", command=self.update_task)
+        self.update_button.grid(row=7, column=1)
+
+        self.delete_button = tk.Button(self.task_frame, text="Delete Task", command=self.delete_task)
+        self.delete_button.grid(row=7, column=2)
 
         self.tasks = {}
-        self.update_button = tk.Button(root, text="Update Task", command=self.update_task)
-        self.update_button.pack(pady=5)
-
         self.task_listbox = tk.Listbox(root, width=50)
         self.task_listbox.pack(pady=10)
 
         self.task_listbox.bind("<<ListboxSelect>>", self.on_task_select)
 
+        self.selected_color = "blue"  # Default color
+
+    def show_tasks(self, event):
+        date = self.calendar.get_date()
+        self.refresh_task_listbox(date)
+
     def add_task(self):
         date = self.calendar.get_date()
-        task = self.task_entry.get()
+        task_name = self.task_entry.get()
+        details = self.details_entry.get()
+        start_date = self.start_date_entry.get()
+        end_date = self.end_date_entry.get()
+        start_time = self.start_time_entry.get()
+        end_time = self.end_time_entry.get()
 
-        if task:
+        if task_name:
+            new_task = Task(task_name, details, start_date, end_date, start_time, end_time, self.selected_color)
+
             if date not in self.tasks:
                 self.tasks[date] = []
-            self.tasks[date].append(task)
-            self.task_entry.delete(0, tk.END)
+            self.tasks[date].append(new_task)
+
+            self.clear_entries()
             self.refresh_task_listbox(date)
+            self.mark_calendar(start_date, end_date, self.selected_color)
         else:
             messagebox.showwarning("Warning", "Please enter a task.")
 
@@ -48,27 +114,120 @@ class CalendarApp:
         self.task_listbox.delete(0, tk.END)
         if date in self.tasks:
             for task in self.tasks[date]:
-                self.task_listbox.insert(tk.END, task)
+                self.task_listbox.insert(tk.END, task.name)
 
     def on_task_select(self, event):
         selected_task_index = self.task_listbox.curselection()
         if selected_task_index:
-            selected_task = self.task_listbox.get(selected_task_index)
+            selected_task = self.tasks[self.calendar.get_date()][selected_task_index[0]]
             self.task_entry.delete(0, tk.END)
-            self.task_entry.insert(0, selected_task)
+            self.task_entry.insert(0, selected_task.name)
+            self.details_entry.delete(0, tk.END)
+            self.details_entry.insert(0, selected_task.details)
+            self.start_date_entry.delete(0, tk.END)
+            self.start_date_entry.insert(0, selected_task.start_date)
+            self.end_date_entry.delete(0, tk.END)
+            self.end_date_entry.insert(0, selected_task.end_date)
+            self.start_time_entry.delete(0, tk.END)
+            self.start_time_entry.insert(0, selected_task.start_time)
+            self.end_time_entry.delete(0, tk.END)
+            self.end_time_entry.insert(0, selected_task.end_time)
 
     def update_task(self):
         date = self.calendar.get_date()
         selected_task_index = self.task_listbox.curselection()
-        updated_task = self.task_entry.get()
 
-        if selected_task_index and updated_task:
+        if selected_task_index:
             task_index = selected_task_index[0]
-            self.tasks[date][task_index] = updated_task
+            task = self.tasks[date][task_index]
+            old_start_date = task.start_date
+            old_end_date = task.end_date
+
+            task.name = self.task_entry.get()
+            task.details = self.details_entry.get()
+            task.start_date = self.start_date_entry.get()
+            task.end_date = self.end_date_entry.get()
+            task.start_time = self.start_time_entry.get()
+            task.end_time = self.end_time_entry.get()
+            task.color = self.selected_color  # Update the color as well
+
             self.refresh_task_listbox(date)
-            self.task_entry.delete(0, tk.END)
+            self.clear_entries()
+
+            # Remove old marks and add new marks based on the updated date range
+            self.remove_calendar_marks(old_start_date, old_end_date)
+            self.mark_calendar(task.start_date, task.end_date, task.color)
         else:
-            messagebox.showwarning("Warning", "Select a task to update and enter the new task.")
+            messagebox.showwarning("Warning", "Select a task to update.")
+
+    def delete_task(self):
+        date = self.calendar.get_date()
+        selected_task_index = self.task_listbox.curselection()
+
+        if selected_task_index:
+            task_index = selected_task_index[0]
+            task = self.tasks[date][task_index]
+            self.remove_calendar_marks(task.start_date, task.end_date)  # Remove marks for the deleted task
+
+            del self.tasks[date][task_index]
+            self.refresh_task_listbox(date)
+            self.redraw_calendar()  # Redraw calendar to remove the color
+        else:
+            messagebox.showwarning("Warning", "Select a task to delete.")
+
+    def choose_color(self):
+        color = colorchooser.askcolor()[1]
+        if color:
+            self.selected_color = color
+            self.color_button.config(bg=color)
+
+    def clear_entries(self):
+        self.task_entry.delete(0, tk.END)
+        self.details_entry.delete(0, tk.END)
+        self.start_date_entry.delete(0, tk.END)
+        self.end_date_entry.delete(0, tk.END)
+        self.start_time_entry.delete(0, tk.END)
+        self.end_time_entry.delete(0, tk.END)
+
+    def mark_calendar(self, start_date, end_date, color):
+        """Mark the calendar with the specified color for the given date range."""
+        start = datetime.strptime(start_date, "%Y-%m-%d")
+        end = datetime.strptime(end_date, "%Y-%m-%d")
+
+        for n in range((end - start).days + 1):
+            day = start + timedelta(n)
+            event_id = self.calendar.calevent_create(day.date(), day.date(), {
+                'color': color
+            })
+            # Store the event ID in the dictionary for later removal
+            if day.date() not in self.event_ids:
+                self.event_ids[day.date()] = []
+            self.event_ids[day.date()].append(event_id)
+
+    def remove_calendar_marks(self, start_date, end_date):
+        """Remove the marks from the calendar for the specified date range."""
+        start = datetime.strptime(start_date, "%Y-%m-%d")
+        end = datetime.strptime(end_date, "%Y-%m-%d")
+
+        for n in range((end - start).days + 1):
+            day = start + timedelta(n)
+            if day.date() in self.event_ids:
+                for event_id in self.event_ids[day.date()]:
+                    self.calendar.calevent_remove(event_id)  # Remove the specific event
+                del self.event_ids[day.date()]  # Clear the event IDs for that day
+
+    def redraw_calendar(self):
+        """Redraw the calendar marks based on current tasks."""
+        # Clear existing marks
+        for date in self.event_ids.keys():
+            for event_id in self.event_ids[date]:
+                self.calendar.calevent_remove(event_id)
+        self.event_ids.clear()  # Clear the stored event IDs
+
+        # Simply mark all tasks again
+        for date, tasks in self.tasks.items():
+            for task in tasks:
+                self.mark_calendar(task.start_date, task.end_date, task.color)
 
 if __name__ == "__main__":
     root = tk.Tk()
