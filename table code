@@ -22,7 +22,6 @@ class CalendarApp:
         self.calendar = Calendar(root, selectmode='day', command=self.show_tasks)
         self.calendar.pack(pady=20)
 
-        # Initialize a dictionary to track events on the calendar
         self.event_ids = {}
 
         self.task_frame = tk.Frame(root)
@@ -40,25 +39,25 @@ class CalendarApp:
         self.details_entry = tk.Entry(self.task_frame, width=30)
         self.details_entry.grid(row=1, column=1)
 
-        self.start_date_label = tk.Label(self.task_frame, text="Start Date:")
+        self.start_date_label = tk.Label(self.task_frame, text="Start Date (YYYY-MM-DD):")
         self.start_date_label.grid(row=2, column=0)
 
         self.start_date_entry = tk.Entry(self.task_frame, width=30)
         self.start_date_entry.grid(row=2, column=1)
 
-        self.end_date_label = tk.Label(self.task_frame, text="End Date:")
+        self.end_date_label = tk.Label(self.task_frame, text="End Date (YYYY-MM-DD):")
         self.end_date_label.grid(row=3, column=0)
 
         self.end_date_entry = tk.Entry(self.task_frame, width=30)
         self.end_date_entry.grid(row=3, column=1)
 
-        self.start_time_label = tk.Label(self.task_frame, text="Start Time:")
+        self.start_time_label = tk.Label(self.task_frame, text="Start Time (HH:MM):")
         self.start_time_label.grid(row=4, column=0)
 
         self.start_time_entry = tk.Entry(self.task_frame, width=30)
         self.start_time_entry.grid(row=4, column=1)
 
-        self.end_time_label = tk.Label(self.task_frame, text="End Time:")
+        self.end_time_label = tk.Label(self.task_frame, text="End Time (HH:MM):")
         self.end_time_label.grid(row=5, column=0)
 
         self.end_time_entry = tk.Entry(self.task_frame, width=30)
@@ -149,12 +148,11 @@ class CalendarApp:
             task.end_date = self.end_date_entry.get()
             task.start_time = self.start_time_entry.get()
             task.end_time = self.end_time_entry.get()
-            task.color = self.selected_color  # Update the color as well
+            task.color = self.selected_color
 
             self.refresh_task_listbox(date)
             self.clear_entries()
 
-            # Remove old marks and add new marks based on the updated date range
             self.remove_calendar_marks(old_start_date, old_end_date)
             self.mark_calendar(task.start_date, task.end_date, task.color)
         else:
@@ -167,11 +165,11 @@ class CalendarApp:
         if selected_task_index:
             task_index = selected_task_index[0]
             task = self.tasks[date][task_index]
-            self.remove_calendar_marks(task.start_date, task.end_date)  # Remove marks for the deleted task
+            self.remove_calendar_marks(task.start_date, task.end_date)
 
             del self.tasks[date][task_index]
             self.refresh_task_listbox(date)
-            self.redraw_calendar()  # Redraw calendar to remove the color
+            self.redraw_calendar()
         else:
             messagebox.showwarning("Warning", "Select a task to delete.")
 
@@ -190,7 +188,6 @@ class CalendarApp:
         self.end_time_entry.delete(0, tk.END)
 
     def mark_calendar(self, start_date, end_date, color):
-        """Mark the calendar with the specified color for the given date range."""
         start = datetime.strptime(start_date, "%Y-%m-%d")
         end = datetime.strptime(end_date, "%Y-%m-%d")
 
@@ -199,13 +196,11 @@ class CalendarApp:
             event_id = self.calendar.calevent_create(day.date(), day.date(), {
                 'color': color
             })
-            # Store the event ID in the dictionary for later removal
             if day.date() not in self.event_ids:
                 self.event_ids[day.date()] = []
             self.event_ids[day.date()].append(event_id)
 
     def remove_calendar_marks(self, start_date, end_date):
-        """Remove the marks from the calendar for the specified date range."""
         start = datetime.strptime(start_date, "%Y-%m-%d")
         end = datetime.strptime(end_date, "%Y-%m-%d")
 
@@ -213,18 +208,15 @@ class CalendarApp:
             day = start + timedelta(n)
             if day.date() in self.event_ids:
                 for event_id in self.event_ids[day.date()]:
-                    self.calendar.calevent_remove(event_id)  # Remove the specific event
-                del self.event_ids[day.date()]  # Clear the event IDs for that day
+                    self.calendar.calevent_remove(event_id)
+                del self.event_ids[day.date()]
 
     def redraw_calendar(self):
-        """Redraw the calendar marks based on current tasks."""
-        # Clear existing marks
         for date in self.event_ids.keys():
             for event_id in self.event_ids[date]:
                 self.calendar.calevent_remove(event_id)
-        self.event_ids.clear()  # Clear the stored event IDs
+        self.event_ids.clear()
 
-        # Simply mark all tasks again
         for date, tasks in self.tasks.items():
             for task in tasks:
                 self.mark_calendar(task.start_date, task.end_date, task.color)
