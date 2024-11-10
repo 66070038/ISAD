@@ -220,7 +220,7 @@ class CalendarApp:
 
             del self.tasks[date][task_index]
             self.refresh_task_listbox(date)
-            self.redraw_calendar()
+            self.clear_entries()
         else:
             messagebox.showwarning("Warning", "Select a task to delete.")
 
@@ -261,16 +261,6 @@ class CalendarApp:
                 for event_id in self.event_ids[day.date()]:
                     self.calendar.calevent_remove(event_id)
                 del self.event_ids[day.date()]
-
-    def redraw_calendar(self):
-        for date in self.event_ids.keys():
-            for event_id in self.event_ids[date]:
-                self.calendar.calevent_remove(event_id)
-        self.event_ids.clear()
-
-        for date, tasks in self.tasks.items():
-            for task in tasks:
-                self.mark_calendar(task.get_start_date(), task.get_end_date(), task.get_color())
 
 if __name__ == "__main__":
     root = tk.Tk()
