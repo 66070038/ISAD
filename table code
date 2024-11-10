@@ -5,14 +5,65 @@ from datetime import datetime, timedelta
 
 class Task:
     def __init__(self, name, details, start_date, end_date, start_time, end_time, color, from_teacher=False):
-        self.name = name
-        self.details = details
-        self.start_date = start_date
-        self.end_date = end_date
-        self.start_time = start_time
-        self.end_time = end_time
-        self.color = color
-        self.from_teacher = from_teacher
+        # Encapsulated private attributes
+        self._name = name
+        self._details = details
+        self._start_date = start_date
+        self._end_date = end_date
+        self._start_time = start_time
+        self._end_time = end_time
+        self._color = color
+        self._from_teacher = from_teacher
+
+    # Getters and Setters for each attribute
+    def get_name(self):
+        return self._name
+
+    def set_name(self, name):
+        self._name = name
+
+    def get_details(self):
+        return self._details
+
+    def set_details(self, details):
+        self._details = details
+
+    def get_start_date(self):
+        return self._start_date
+
+    def set_start_date(self, start_date):
+        self._start_date = start_date
+
+    def get_end_date(self):
+        return self._end_date
+
+    def set_end_date(self, end_date):
+        self._end_date = end_date
+
+    def get_start_time(self):
+        return self._start_time
+
+    def set_start_time(self, start_time):
+        self._start_time = start_time
+
+    def get_end_time(self):
+        return self._end_time
+
+    def set_end_time(self, end_time):
+        self._end_time = end_time
+
+    def get_color(self):
+        return self._color
+
+    def set_color(self, color):
+        self._color = color
+
+    def get_from_teacher(self):
+        return self._from_teacher
+
+    def set_from_teacher(self, from_teacher):
+        self._from_teacher = from_teacher
+
 
 class CalendarApp:
     def __init__(self, root):
@@ -113,24 +164,24 @@ class CalendarApp:
         self.task_listbox.delete(0, tk.END)
         if date in self.tasks:
             for task in self.tasks[date]:
-                self.task_listbox.insert(tk.END, task.name)
+                self.task_listbox.insert(tk.END, task.get_name())
 
     def on_task_select(self, event):
         selected_task_index = self.task_listbox.curselection()
         if selected_task_index:
             selected_task = self.tasks[self.calendar.get_date()][selected_task_index[0]]
             self.task_entry.delete(0, tk.END)
-            self.task_entry.insert(0, selected_task.name)
+            self.task_entry.insert(0, selected_task.get_name())
             self.details_entry.delete(0, tk.END)
-            self.details_entry.insert(0, selected_task.details)
+            self.details_entry.insert(0, selected_task.get_details())
             self.start_date_entry.delete(0, tk.END)
-            self.start_date_entry.insert(0, selected_task.start_date)
+            self.start_date_entry.insert(0, selected_task.get_start_date())
             self.end_date_entry.delete(0, tk.END)
-            self.end_date_entry.insert(0, selected_task.end_date)
+            self.end_date_entry.insert(0, selected_task.get_end_date())
             self.start_time_entry.delete(0, tk.END)
-            self.start_time_entry.insert(0, selected_task.start_time)
+            self.start_time_entry.insert(0, selected_task.get_start_time())
             self.end_time_entry.delete(0, tk.END)
-            self.end_time_entry.insert(0, selected_task.end_time)
+            self.end_time_entry.insert(0, selected_task.get_end_time())
 
     def update_task(self):
         date = self.calendar.get_date()
@@ -139,22 +190,22 @@ class CalendarApp:
         if selected_task_index:
             task_index = selected_task_index[0]
             task = self.tasks[date][task_index]
-            old_start_date = task.start_date
-            old_end_date = task.end_date
+            old_start_date = task.get_start_date()
+            old_end_date = task.get_end_date()
 
-            task.name = self.task_entry.get()
-            task.details = self.details_entry.get()
-            task.start_date = self.start_date_entry.get()
-            task.end_date = self.end_date_entry.get()
-            task.start_time = self.start_time_entry.get()
-            task.end_time = self.end_time_entry.get()
-            task.color = self.selected_color
+            task.set_name(self.task_entry.get())
+            task.set_details(self.details_entry.get())
+            task.set_start_date(self.start_date_entry.get())
+            task.set_end_date(self.end_date_entry.get())
+            task.set_start_time(self.start_time_entry.get())
+            task.set_end_time(self.end_time_entry.get())
+            task.set_color(self.selected_color)
 
             self.refresh_task_listbox(date)
             self.clear_entries()
 
             self.remove_calendar_marks(old_start_date, old_end_date)
-            self.mark_calendar(task.start_date, task.end_date, task.color)
+            self.mark_calendar(task.get_start_date(), task.get_end_date(), task.get_color())
         else:
             messagebox.showwarning("Warning", "Select a task to update.")
 
@@ -165,7 +216,7 @@ class CalendarApp:
         if selected_task_index:
             task_index = selected_task_index[0]
             task = self.tasks[date][task_index]
-            self.remove_calendar_marks(task.start_date, task.end_date)
+            self.remove_calendar_marks(task.get_start_date(), task.get_end_date())
 
             del self.tasks[date][task_index]
             self.refresh_task_listbox(date)
@@ -219,7 +270,7 @@ class CalendarApp:
 
         for date, tasks in self.tasks.items():
             for task in tasks:
-                self.mark_calendar(task.start_date, task.end_date, task.color)
+                self.mark_calendar(task.get_start_date(), task.get_end_date(), task.get_color())
 
 if __name__ == "__main__":
     root = tk.Tk()
